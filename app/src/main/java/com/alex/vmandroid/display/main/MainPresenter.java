@@ -20,10 +20,15 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
+import com.alex.businesses.GetBaseInfoBiz;
 import com.alex.businesses.LoginBiz;
-import com.alex.vmandroid.AudioRecordDemo;
+import com.alex.utils.AppLog;
+import com.alex.utils.ServiceCheck;
+import com.alex.vmandroid.display.voice.AudioRecordDemo;
 import com.alex.vmandroid.R;
 import com.alex.vmandroid.databases.UserInfo;
+import com.alex.vmandroid.entities.BaseInfo;
+import com.alex.vmandroid.entities.Login;
 import com.amap.api.services.weather.LocalWeatherForecastResult;
 import com.amap.api.services.weather.LocalWeatherLive;
 import com.amap.api.services.weather.LocalWeatherLiveResult;
@@ -35,11 +40,15 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
+import static com.alex.vmandroid.services.RecordDBService.RecordDBServiceName;
+
 
 public class MainPresenter implements MainContract.MainPresenter, AudioRecordDemo.Listener,
         WeatherSearch.OnWeatherSearchListener {
 
     private final String TAG = MainPresenter.class.getName();
+
+
     private MainContract.MainView mMainView;
 
     private MainContract.RecordView mRecordView;
@@ -54,7 +63,7 @@ public class MainPresenter implements MainContract.MainPresenter, AudioRecordDem
 
     private Context mContext;
 
-    Handler handle = new Handler();
+    private Handler handle = new Handler();
 
     public MainPresenter() {
 
@@ -67,7 +76,7 @@ public class MainPresenter implements MainContract.MainPresenter, AudioRecordDem
 
     @Override
     public void start() {
-        Log.d(TAG, "start");
+        AppLog.debug(TAG, "start");
     }
 
     @Override
@@ -77,7 +86,7 @@ public class MainPresenter implements MainContract.MainPresenter, AudioRecordDem
 
     @Override
     public void initMainView(MainContract.MainView mainView) {
-        Log.d(TAG, "initMainView");
+        AppLog.debug(TAG, "initMainView");
         mMainView = mainView;
         mMainView.setPresenter(this);
     }
@@ -93,8 +102,39 @@ public class MainPresenter implements MainContract.MainPresenter, AudioRecordDem
 
     @Override
     public void startRecord(Context context) {
+        new GetBaseInfoBiz().get(new GetBaseInfoBiz.Listener() {
+            @Override
+            public void succeed(final BaseInfo baseInfo) {
+                UserInfo.putString(mContext, "Nickname", baseInfo.getNickname());
+                UserInfo.putUserName(mContext, baseInfo.getUsername());
+                UserInfo.putInt(mContext, "AverageDb", baseInfo.getAverageDb());
+                UserInfo.putInt(mContext, "MaxDb", baseInfo.getMaxDb());
+                UserInfo.putInt(mContext, "MinDb", baseInfo.getMinDb());
+                UserInfo.putInt(mContext, "RecordTimes", baseInfo.getRecordTimes());
+                UserInfo.putInt(mContext, "RecordMinter", (int) baseInfo.getRecordMinter());
+                handle.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mRecordView.setRecordMinter(String.valueOf((int) baseInfo.getRecordMinter()));
+                        mRecordView.setRecordTimes(String.valueOf(baseInfo.getRecordTimes()));
+                        mRecordView.setAverageDb(String.valueOf(baseInfo.getAverageDb()));
+                        mRecordView.setMaxMin(baseInfo.getMaxDb() + "/" + baseInfo.getMinDb());
+                    }
+                });
+
+            }
+
+            @Override
+            public void failed() {
+
+            }
+        }, UserInfo.getUsrId(mContext));
         recordDemo = new AudioRecordDemo(this);
-        recordDemo.getNoiseLevel();
+        if (ServiceCheck.isServiceWork(mContext, RecordDBServiceName)) {
+            AppLog.info(TAG, "startRecord: service is running");
+        } else {
+            recordDemo.getNoiseLevel();
+        }
     }
 
     @Override
@@ -137,37 +177,83 @@ public class MainPresenter implements MainContract.MainPresenter, AudioRecordDem
         mLoginView.setPresenter(this);
     }
 
-
     @Override
-    public void onClick(int id) {
-        switch (id) {
-            //region : RecordFragment 界面的点击事件
-            case R.id.main_record_total_ll:
-                mRecordView.showHistoryActivity();
-                break;
-            case R.id.main_record_location_weather_ll:
-                Log.i(TAG, "onClick: main_record_location_weather_ll");
-                mRecordView.showLocationWeatherActivity();
-                break;
-            //endregion
+    public void onClick(int id, int tag) {
 
-            //region : MeFragment 界面的点击事件
-            case R.id.main_me_history_ll:
-                mMeView.showHistoryActivity();
-                break;
-            case R.id.main_me_analysis_ll:
-                mMeView.showAnalysisActivity();
-                break;
-            case R.id.main_me_map_setting_ll:
-                mMeView.showMapSettingActivity();
-                break;
-            case R.id.main_me_offline_map_ll:
-                mMeView.showOfflineMapActivity();
-                break;
-            case R.id.main_me_gadget_ll:
-                mMeView.showGadgetActivity();
+        switch (tag) {
+            //region : RecordFragment 界面的点击事件
+            case MainContract.RECORD_TAG:
+                switch (id) {
+                    case R.id.main_record_title_bar_record_begin_iv:
+                        mRecordView.showRecordDBActivity();
+                        break;
+
+                    case R.id.main_record_total_ll:
+                        mRecordView.showHistoryActivity();
+                        break;
+
+                    case R.id.main_record_location_weather_ll:
+                        Log.i(TAG, "onClick: main_record_location_weather_ll");
+                        mRecordView.showLocationWeatherActivity();
+                        break;
+                }
                 break;
             //endregion
+            //region : DiscoverFragment 界面的点击事件
+            case MainContract.DISCOVER_TAG:
+                switch (id) {
+                    case R.id.main_discover_bar_ll:
+                        break;
+                    case R.id.main_discover_ktv_ll:
+                        break;
+                    case R.id.main_discover_restaurant_ll:
+                        break;
+                    case R.id.main_discover_other_ll:
+                        break;
+                }
+                break;
+            //endregion
+            //region : MeFragment 界面的点击事件
+            case MainContract.ME_TAG:
+                switch (id) {
+                    case R.id.main_me_history_ll:
+                        mMeView.showHistoryActivity();
+                        break;
+                    case R.id.main_me_analysis_ll:
+                        mMeView.showAnalysisActivity();
+                        break;
+                    case R.id.main_me_map_setting_ll:
+                        mMeView.showMapSettingActivity();
+                        break;
+                    case R.id.main_me_offline_map_ll:
+                        mMeView.showOfflineMapActivity();
+                        break;
+                    case R.id.main_me_gadget_ll:
+                        mMeView.showGadgetActivity();
+                        break;
+                }
+                break;
+            //endregion
+        }
+
+        switch (id) {
+//            //region : MeFragment 界面的点击事件
+//            case R.id.main_me_history_ll:
+//                mMeView.showHistoryActivity();
+//                break;
+//            case R.id.main_me_analysis_ll:
+//                mMeView.showAnalysisActivity();
+//                break;
+//            case R.id.main_me_map_setting_ll:
+//                mMeView.showMapSettingActivity();
+//                break;
+//            case R.id.main_me_offline_map_ll:
+//                mMeView.showOfflineMapActivity();
+//                break;
+//            case R.id.main_me_gadget_ll:
+//                mMeView.showGadgetActivity();
+//                break;
+//            //endregion
             case R.id.main_login_immediate_experience_btn:
                 mUnLoginView.showMainFragment();
                 break;
@@ -190,40 +276,53 @@ public class MainPresenter implements MainContract.MainPresenter, AudioRecordDem
 
 
         // 观察者
-        Subscriber observer = new Subscriber<String>() {
+        Subscriber observer = new Subscriber<Integer>() {
             @Override
             public void onCompleted() {
-                Log.i(TAG, "onCompleted");
-                UserInfo.putPassword(mContext, password);
-                UserInfo.putUserName(mContext, username);
+                mLoginView.showToast(mContext.getResources().getString(R.string.login_success));
                 mLoginView.showMainFragment();
+
             }
 
             @Override
             public void onError(Throwable e) {
-                Log.i(TAG, "onError");
+                AppLog.error("Login error");
+                mLoginView.showToast(mContext.getResources().getString(R.string.unknown_error));
             }
 
             @Override
-            public void onNext(String str) {
+            public void onNext(Integer str) {
+                switch (str) {
+                    case LoginBiz.PASSWORD_WRONG:
+                        mLoginView.showToast(mContext.getResources().getString(R.string.login_password_wrong));
+                        break;
+                    case LoginBiz.ACCOUNT_NO_EXITED:
+                        mLoginView.showToast(mContext.getResources().getString(R.string.login_account_no_exit));
+                        break;
+                    case LoginBiz.UNKNOWN_WRONG:
+                        mLoginView.showToast(mContext.getResources().getString(R.string.unknown_error));
+                        break;
+                }
                 Log.i(TAG, "onNext");
             }
         };
 
-        Observable observable = Observable.create(new Observable.OnSubscribe<String>() {
+        Observable observable = Observable.create(new Observable.OnSubscribe<Integer>() {
 
             @Override
-            public void call(final Subscriber<? super String> subscriber) {
+            public void call(final Subscriber<? super Integer> subscriber) {
 
                 LoginBiz.Listener listener = new LoginBiz.Listener() {
                     @Override
-                    public void succeed() {
+                    public void succeed(Login.User user) {
+                        UserInfo.putUsrId(mContext, user.getUserId());
+                        UserInfo.putUserName(mContext, user.getUserName());
                         subscriber.onCompleted();
                     }
 
                     @Override
-                    public void failed(String str) {
-                        subscriber.onNext(str);
+                    public void failed(int i) {
+                        subscriber.onNext(i);
                     }
                 };
 
@@ -254,6 +353,7 @@ public class MainPresenter implements MainContract.MainPresenter, AudioRecordDem
      */
     @Override
     public void onWeatherForecastSearched(LocalWeatherForecastResult localWeatherForecastResult, int i) {
+
     }
 
 
@@ -263,7 +363,7 @@ public class MainPresenter implements MainContract.MainPresenter, AudioRecordDem
         handle.post(new Runnable() {
             @Override
             public void run() {
-                mRecordView.updateRealTimeNoise(value);
+                mRecordView.updateRealTimeNoise((int) value);
             }
         });
 

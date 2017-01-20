@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.alex.utils.FragmentNavigator;
 
@@ -92,7 +93,17 @@ public class LoginFragment extends BaseFragment implements MainContract.LoginVie
 
     @Override
     public void onClick(View view) {
-        mPresenter.onClick(view.getId());
+        mPresenter.onClick(view.getId(),-1);
+    }
+
+    /**
+     * 显示toast 提示
+     *
+     * @param str 显示的提示信息
+     */
+    @Override
+    public void showToast(String str) {
+        Toast.makeText(getContext(),str,Toast.LENGTH_SHORT).show();
     }
 
     /**

@@ -18,13 +18,54 @@ package com.alex.utils;
 public class URLs {
 
     // My location server address.
-    private static final String LOCATION_SERVER = "http://192.168.1.109:8080/VMServer/";
+    private static final String LOCATION_SERVER = "http://192.168.0.144:8080/VMServer/";
 
 
     // Using address.
     private static final String SERVER_ADDRESS = LOCATION_SERVER;
 
+    /**
+     * 登陆访问的地址
+     */
+    public static final String URL_LOGIN = SERVER_ADDRESS + "Android_Login";
 
-    // 登陆访问的地址
-    public static final String URL_LOGIN = SERVER_ADDRESS + "Login";
+    /**
+     * 上传噪声记录的地址
+     */
+    public static final String URL_RECORD_DB = SERVER_ADDRESS + "Android_RecordDB";
+
+    /**
+     * 获取基础信息的地址
+     */
+    public static final String URL_GET_BASE_INFO = SERVER_ADDRESS + "Android_GetBaseInfo";
+
+    /**
+     * 获取服务器分析返回数据的地址
+     */
+    public static final String URL_Analysis = SERVER_ADDRESS + "Android_Analysis";
+
+    /**
+     * 获取历史记录信息的地址
+     */
+    public static final String URL_History = SERVER_ADDRESS + "Android_History";
+
+    /**
+     * 获取广告栏的基本信息
+     */
+    public static final String URL_ADVERTISING_COLUMN = SERVER_ADDRESS + "Android_AdvertisingColumn";
+
+    /**
+     * 获取图片的地址
+     */
+    public static final String URL_GET_PIC = SERVER_ADDRESS + "Android_GetPic";
+
+    /**
+     * 通过广告id获取店铺的基本信息地址
+     */
+    public static final String URL_GET_STORE_INFO = SERVER_ADDRESS + "Android_StroeInfo";
+
+    /**
+     * 获取商家声音记录的地址
+     */
+    public static final String URL_GET_STORE_RECORD_DB_LIST = SERVER_ADDRESS + "Android_StoreRecordDbList";
 }

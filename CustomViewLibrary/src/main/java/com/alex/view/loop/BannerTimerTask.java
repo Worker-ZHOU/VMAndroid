@@ -12,28 +12,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * @author Alex_ZHOU
+ *
+ * @author junweiliu 2016/6/14
  */
-package com.alex.vmandroid.entities;
 
-public class User {
+package com.alex.view.loop;
 
-    private String UserName;
+import android.os.Handler;
 
-    private String Password;
+import java.util.TimerTask;
 
-    public String getUserName() {
-        return UserName;
+/**
+ * 定时器
+ */
+public class BannerTimerTask extends TimerTask {
+
+    private Handler mHandler;
+
+    public BannerTimerTask(Handler mHandler) {
+        super();
+        this.mHandler = mHandler;
     }
 
-    public void setUserName(String userName) {
-        UserName = userName;
-    }
 
-    public String getPassword() {
-        return Password;
-    }
-
-    public void setPassword(String password) {
-        Password = password;
+    //FIXME 0X1001不知道是什么
+    @Override
+    public void run() {
+        mHandler.sendEmptyMessage(0X1001);
     }
 }

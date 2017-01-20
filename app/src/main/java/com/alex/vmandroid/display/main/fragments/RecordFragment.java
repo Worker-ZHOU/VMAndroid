@@ -17,21 +17,29 @@
 package com.alex.vmandroid.display.main.fragments;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 
+import com.alex.utils.AppLog;
 import com.alex.vmandroid.R;
 import com.alex.vmandroid.base.BaseFragment;
+import com.alex.vmandroid.display.exhibition.history.HistoryActivity;
 import com.alex.vmandroid.display.main.MainContract;
+import com.alex.vmandroid.display.voice.db.RecordDBActivity;
 import com.alex.vmandroid.display.weather.location.LocationWeatherActivity;
+import com.alex.vmandroid.receivers.RecordDBReceiver;
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -54,6 +62,14 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
 
     private MainContract.MainPresenter mPresenter;
 
+    private TextView mRecordMinterTextView;
+
+    private TextView mRecordTimesTextView;
+
+    private TextView mAverageDbTextView;
+
+    private TextView mMaxMinTextView;
+
     private TextView mRealTimeNoiseTextView;
 
     private MapView mapView;
@@ -68,6 +84,8 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
     private OnLocationChangedListener mListener;
 
     private AMap mAMap;
+
+    private MessageReceiver mReceiver;
 
     public static RecordFragment newInstance() {
         return new RecordFragment();
@@ -101,6 +119,11 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mReceiver = new MessageReceiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(RecordDBReceiver.ACTION);
+        getActivity().registerReceiver(mReceiver, intentFilter);
     }
 
     @Nullable
@@ -111,20 +134,28 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
 
         View view = inflater.inflate(R.layout.fragment_main_record, container, false);
 
+        // 标题栏记录按钮
+        ImageView recordBeginImageView = (ImageView) view.findViewById(R.id.main_record_title_bar_record_begin_iv);
+        recordBeginImageView.setOnClickListener(this);
+
+        mRecordMinterTextView = (TextView) view.findViewById(R.id.main_record_minutes_tv);
+
+        mRecordTimesTextView = (TextView) view.findViewById(R.id.main_record_record_times_tv);
+
+        mAverageDbTextView = (TextView) view.findViewById(R.id.main_record_average_tv);
+
+        mMaxMinTextView = (TextView) view.findViewById(R.id.main_record_max_min_tv);
+
         mRealTimeNoiseTextView = (TextView) view.findViewById(R.id.main_record_real_db_tv);
 
         mapView = (MapView) view.findViewById(R.id.map);
         mapView.onCreate(savedInstanceState);// 此方法必须重写
 
+        // 天气模块
         mCityTextView = (TextView) view.findViewById(R.id.main_record_location_tv);
-
         mWeatherView = (TextView) view.findViewById(R.id.main_record_weather_tv);
-
         LinearLayout weather = (LinearLayout) view.findViewById(R.id.main_record_location_weather_ll);
-
         weather.setOnClickListener(this);
-
-        //mapView = (TextureMapView) view.findViewById(R.id.map);
 
 
         // FIXME: 26/10/2016 mvp
@@ -148,7 +179,6 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
-
     }
 
     @Override
@@ -158,8 +188,9 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         mapView.onDestroy();
+        getActivity().unregisterReceiver(mReceiver);
+        super.onDestroy();
     }
 
     @Override
@@ -168,12 +199,64 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
     }
 
     /**
+     * 跳转到记录噪声分贝界面
+     */
+    @Override
+    public void showRecordDBActivity() {
+        AppLog.info(TAG, "showRecordDBActivity");
+        Intent intent = new Intent(getActivity(), RecordDBActivity.class);
+        startActivity(intent);
+    }
+
+    /**
      * 跳转到显示历史记录界面
      */
     @Override
     public void showHistoryActivity() {
-        Log.i(TAG, "showHistoryActivity");
-        mAMap.setMyLocationType(AMap.LOCATION_TYPE_MAP_ROTATE);
+        AppLog.info(TAG, "showHistoryActivity");
+        Intent intent = new Intent(getActivity(), HistoryActivity.class);
+        startActivity(intent);
+        //mAMap.setMyLocationType(AMap.LOCATION_TYPE_MAP_ROTATE);
+    }
+
+    /**
+     * 设置记录的总分钟数
+     *
+     * @param str 分钟数
+     */
+    @Override
+    public void setRecordMinter(String str) {
+        mRecordMinterTextView.setText(str);
+    }
+
+    /**
+     * 设置记录的次数
+     *
+     * @param str 记录的次数
+     */
+    @Override
+    public void setRecordTimes(String str) {
+        mRecordTimesTextView.setText(str);
+    }
+
+    /**
+     * 设置平均数
+     *
+     * @param str 平均数
+     */
+    @Override
+    public void setAverageDb(String str) {
+        mAverageDbTextView.setText(str);
+    }
+
+    /**
+     * 设置最大最小值
+     *
+     * @param str 最大最小值
+     */
+    @Override
+    public void setMaxMin(String str) {
+        mMaxMinTextView.setText(str);
     }
 
     @Override
@@ -187,10 +270,8 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
      * @param d 实时噪声数值
      */
     @Override
-    public void updateRealTimeNoise(double d) {
-
+    public void updateRealTimeNoise(int d) {
         mRealTimeNoiseTextView.setText(String.valueOf(d));
-
     }
 
     /**
@@ -259,7 +340,7 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
 
     @Override
     public void onClick(View view) {
-        mPresenter.onClick(view.getId());
+        mPresenter.onClick(view.getId(), MainContract.RECORD_TAG);
     }
 
 
@@ -268,7 +349,20 @@ public class RecordFragment extends BaseFragment implements MainContract.RecordV
 
         mAMap.setMyLocationType(AMap.LOCATION_TYPE_MAP_ROTATE);
         mAMap.showBuildings(true);
+    }
 
+
+    private class MessageReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(RecordDBReceiver.ACTION)) {
+                if (intent.getExtras().containsKey(RecordDBReceiver.RECORD_DB_RECEIVER_DB)) {
+                    int db = intent.getIntExtra(RecordDBReceiver.RECORD_DB_RECEIVER_DB, -1);
+                    updateRealTimeNoise(db);
+                }
+            }
+        }
     }
 
 }

@@ -21,6 +21,12 @@ import com.alex.vmandroid.base.BaseContract;
 
 public class MainContract {
 
+    public static final int RECORD_TAG = 1;
+
+    public static final int DISCOVER_TAG = 2;
+
+    public static final int ME_TAG = 3;
+
     public interface MainPresenter extends BaseContract.BasePresenter {
 
         void setApplicationContext(Context context);
@@ -43,7 +49,7 @@ public class MainContract {
 
         void initLoginView(LoginView loginView);
 
-        void onClick(int id);
+        void onClick(int id, int tag);
 
 
     }
@@ -55,9 +61,42 @@ public class MainContract {
     public interface RecordView extends BaseContract.BaseView<MainPresenter> {
 
         /**
+         * 跳转到记录噪声分贝界面
+         */
+        void showRecordDBActivity();
+
+        /**
          * 跳转到显示历史记录界面
          */
         void showHistoryActivity();
+
+        /**
+         * 设置记录的总分钟数
+         *
+         * @param str 分钟数
+         */
+        void setRecordMinter(String str);
+
+        /**
+         * 设置记录的次数
+         *
+         * @param str 记录的次数
+         */
+        void setRecordTimes(String str);
+
+        /**
+         * 设置平均数
+         *
+         * @param str 平均数
+         */
+        void setAverageDb(String str);
+
+        /**
+         * 设置最大最小值
+         *
+         * @param str 最大最小值
+         */
+        void setMaxMin(String str);
 
         /**
          * 设置天气显示
@@ -71,7 +110,7 @@ public class MainContract {
          *
          * @param d 实时噪声数值
          */
-        void updateRealTimeNoise(double d);
+        void updateRealTimeNoise(int d);
 
         /**
          * 显示详细当地天气信息
@@ -119,6 +158,12 @@ public class MainContract {
     }
 
     public interface LoginView extends BaseContract.BaseView<MainPresenter> {
+
+        /**
+         * 显示toast 提示
+         * @param str 显示的提示信息
+         */
+        void showToast(String str);
 
         /**
          * 登陆成功，跳转到主页界面

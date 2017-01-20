@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2016-2017 Alex_ZHOU
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.alex.vmandroid">
 
 
-    <!--麦克风申请权限-->
+    <!--
+      ~ 麦克风申请权限
+      ~ 用处：录音、噪声获取
+      ~ 是否需要向用户申请权限：是
+    -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
 
@@ -23,6 +43,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
 
     <application
+        android:name=".VMApplication"
         android:allowBackup="false"
         android:icon="@drawable/vm_android_app_icon"
         android:label="@string/app_name"
@@ -33,6 +54,23 @@
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value="${TENCENT_MAP_KEY}"/>
+
+        <!--
+          ~ 记录分贝时需要的服务
+          ~ 前台服务
+        -->
+        <service
+            android:name=".services.RecordDBService"
+            android:enabled="true"
+            android:process="system"/>
+
+        <!--
+          ~ 接收RecordDBService发出广播
+        -->
+        <receiver
+            android:name=".receivers.RecordDBReceiver"
+            android:enabled="true"
+            android:process="system"/>
 
         <activity
             android:name=".display.main.MainActivity"
@@ -45,19 +83,36 @@
         </activity>
 
         <activity
+            android:name=".display.voice.db.RecordDBActivity"/>
+
+        <activity
             android:name=".display.weather.location.LocationWeatherActivity"
             android:theme="@style/AppTheme"/>
 
         <activity
-            android:name=".display.history.HistoryActivity"/>
+            android:name=".display.exhibition.analysis.AnalysisActivity"/>
+
+        <activity
+            android:name=".display.exhibition.history.HistoryActivity"/>
 
 
         <activity
             android:name=".display.gadget.GadgetActivity"/>
         <activity
             android:name=".display.weather.inquiry.InquiryWeatherActivity"/>
+        <activity
+            android:name=".display.voice.tape.SoundRecordingActivity"/>
 
-        <service android:name="com.amap.api.location.APSService">
+        <activity
+            android:name=".display.spread.advertisement.AdvertisementActivity"/>
+        <activity
+            android:name=".display.spread.store.StoreRecordDbListActivity"/>
+        <activity
+            android:name=".display.voice.store.StoreDbRecordActivity"/>
+
+
+        <service
+            android:name="com.amap.api.location.APSService">
         </service>
 
     </application>

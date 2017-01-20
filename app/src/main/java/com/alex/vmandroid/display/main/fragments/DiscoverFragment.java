@@ -18,16 +18,21 @@ package com.alex.vmandroid.display.main.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import com.alex.vmandroid.R;
 import com.alex.vmandroid.base.BaseFragment;
 import com.alex.vmandroid.display.main.MainContract;
+import com.alex.vmandroid.display.main.fragments.fragments.LoopAdvertisementFragment;
+import com.alex.vmandroid.display.main.fragments.fragments.LoopAdvertisementPresenter;
 
-public class DiscoverFragment extends BaseFragment implements MainContract.DiscoverView {
+public class DiscoverFragment extends BaseFragment implements MainContract.DiscoverView, View.OnClickListener {
     public final String TAG = Base_TAG;
 
     private MainContract.MainPresenter mPresenter;
@@ -53,7 +58,31 @@ public class DiscoverFragment extends BaseFragment implements MainContract.Disco
                              @Nullable Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView: DiscoverFragment");
 
-        return inflater.inflate(R.layout.fragment_main_discover, container, false);
+
+        View view = inflater.inflate(R.layout.fragment_main_discover, container, false);
+
+        LoopAdvertisementFragment fragment = new LoopAdvertisementFragment();
+
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        new LoopAdvertisementPresenter(fragment);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.main_loop_advertisement_frame_layout, fragment);
+        transaction.commit();
+
+
+        LinearLayout mBarLinearLayout = (LinearLayout) view.findViewById(R.id.main_discover_bar_ll);
+        mBarLinearLayout.setOnClickListener(this);
+
+        LinearLayout mKTVLinearLayout = (LinearLayout) view.findViewById(R.id.main_discover_ktv_ll);
+        mKTVLinearLayout.setOnClickListener(this);
+
+        LinearLayout mRestaurantLinearLayout = (LinearLayout) view.findViewById(R.id.main_discover_restaurant_ll);
+        mRestaurantLinearLayout.setOnClickListener(this);
+
+        LinearLayout mOtherLinearLayout = (LinearLayout) view.findViewById(R.id.main_discover_other_ll);
+        mOtherLinearLayout.setOnClickListener(this);
+
+        return view;
     }
 
     @Override
@@ -69,5 +98,10 @@ public class DiscoverFragment extends BaseFragment implements MainContract.Disco
     @Override
     public void setPresenter(MainContract.MainPresenter mainPresenter) {
         mPresenter = mainPresenter;
+    }
+
+    @Override
+    public void onClick(View view) {
+        mPresenter.onClick(view.getId(), MainContract.DISCOVER_TAG);
     }
 }

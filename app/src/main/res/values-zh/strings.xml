@@ -54,5 +54,24 @@
     <string name="input_is_empty">输入为空</string>
     <string name="no_result">查无数据</string>
     <string name="loading">正在加载…</string>
+    <string name="uploading">正在上传…</string>
     <string name="inquire_weather">查询天气</string>
+    <string name="double_minus">--</string>
+    <string name="initial_time">00:00:00</string>
+    <string name="duration">时长</string>
+    <string name="max_db">最大分贝</string>
+    <string name="start">开始</string>
+    <string name="stop">停止</string>
+    <string name="login_success">登陆成功</string>
+    <string name="login_password_wrong">密码错误</string>
+    <string name="login_account_no_exit">用户名不存在</string>
+    <string name="unknown_error">发生未知错误</string>
+    <string name="upload_failed">上传失败</string>
+    <string name="upload_succeed">上传成功</string>
+    <string name="bar">酒吧</string>
+    <string name="ktv">KTV</string>
+    <string name="restaurant">餐饮</string>
+    <string name="other">其他</string>
+    <string name="summary">简介</string>
+    <string name="summary_colon">简介:</string>
 </resources>
